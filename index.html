@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity Quiz</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔒 Cybersecurity Quiz</h1>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p class="question-counter">Vraag <span id="currentQuestion">1</span> van <span id="totalQuestions">100</span></p>
+        </header>
+
+        <main>
+            <div class="quiz-container" id="quizContainer">
+                <div class="question-section">
+                    <h2 id="questionText">Vraag wordt geladen...</h2>
+                </div>
+                
+                <div class="answers-section" id="answersSection">
+                    <!-- Antwoorden worden hier dynamisch toegevoegd -->
+                </div>
+                
+                <div class="feedback-section" id="feedbackSection" style="display: none;">
+                    <div class="feedback-content">
+                        <div class="feedback-icon" id="feedbackIcon"></div>
+                        <div class="feedback-text" id="feedbackText"></div>
+                        <div class="correct-answer" id="correctAnswer"></div>
+                    </div>
+                </div>
+                
+                <div class="navigation-section">
+                    <button id="nextButton" class="btn btn-primary" style="display: none;">Volgende Vraag</button>
+                    <button id="restartButton" class="btn btn-secondary" style="display: none;">Opnieuw Beginnen</button>
+                </div>
+            </div>
+
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-content">
+                    <h2>🎉 Quiz Voltooid!</h2>
+                    <div class="score-display">
+                        <div class="score-circle">
+                            <span id="scorePercentage">0%</span>
+                        </div>
+                        <p>Je hebt <span id="correctCount">0</span> van de <span id="totalCount">0</span> vragen goed!</p>
+                    </div>
+                    <div class="category-breakdown" id="categoryBreakdown">
+                        <!-- Categorie breakdown wordt hier toegevoegd -->
+                    </div>
+                    <button id="restartQuizButton" class="btn btn-primary">Nieuwe Quiz Starten</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
