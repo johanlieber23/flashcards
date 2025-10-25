@@ -15,10 +15,10 @@ const quizData = [
     {
         question: "Wat is encryptie?",
         answers: [
-            "Het omzetten van data naar leesbare tekst",
-            "Het verbergen van data door middel van een sleutel",
-            "Het comprimeren van bestanden",
-            "Het controleren van data-integriteit"
+            "Data omzetten naar tekst",
+            "Data verbergen met sleutel",
+            "Bestanden comprimeren",
+            "Data-integriteit controleren"
         ],
         correct: 1,
         category: "Cybersecurity - BIV & Beveiliging"
@@ -26,10 +26,10 @@ const quizData = [
     {
         question: "Wat is encoding?",
         answers: [
-            "Het beschermen van data met een sleutel",
-            "Het omzetten van data naar een ander formaat zonder beveiliging",
-            "Het versleutelen van berichten",
-            "Het valideren van gegevens"
+            "Data beschermen met sleutel",
+            "Data omzetten zonder beveiliging",
+            "Berichten versleutelen",
+            "Gegevens valideren"
         ],
         correct: 1,
         category: "Cybersecurity - BIV & Beveiliging"
@@ -37,9 +37,9 @@ const quizData = [
     {
         question: "Verschil tussen encryptie en encoding:",
         answers: [
-            "Encryptie gebruikt sleutels, encoding niet",
-            "Encoding gebruikt sleutels, encryptie niet",
-            "Encoding is veiliger dan encryptie",
+            "Encryptie gebruikt sleutels",
+            "Encoding gebruikt sleutels",
+            "Encoding is veiliger",
             "Ze zijn hetzelfde"
         ],
         correct: 0,
@@ -50,7 +50,7 @@ const quizData = [
         answers: [
             "Data verbergen",
             "Data versleutelen",
-            "Unieke vingerafdruk van data maken",
+            "Unieke vingerafdruk maken",
             "Data delen"
         ],
         correct: 2,
@@ -70,10 +70,10 @@ const quizData = [
     {
         question: "Wat is een salt bij hashing?",
         answers: [
-            "Een extra stuk data toegevoegd aan de hash voor meer veiligheid",
+            "Extra data voor veiligheid",
             "Een wachtwoord",
-            "Een sleutel voor decryptie",
-            "Een hash zonder beveiliging"
+            "Een decryptie sleutel",
+            "Een onveilige hash"
         ],
         correct: 0,
         category: "Cybersecurity - BIV & Beveiliging"
@@ -81,7 +81,7 @@ const quizData = [
     {
         question: "Wat is symmetrische encryptie?",
         answers: [
-            "Eén sleutel voor versleutelen en ontsleutelen",
+            "Eén sleutel voor beide",
             "Twee verschillende sleutels",
             "Zonder sleutel",
             "Alleen voor e-mails"
@@ -93,7 +93,7 @@ const quizData = [
         question: "Wat is asymmetrische encryptie?",
         answers: [
             "Dezelfde sleutel aan beide kanten",
-            "Verschillende sleutels: public en private",
+            "Public en private sleutels",
             "Encryptie zonder sleutel",
             "Hashing"
         ],
@@ -114,9 +114,9 @@ const quizData = [
     {
         question: "Wat is een publieke sleutel?",
         answers: [
-            "Alleen de verzender kent deze",
+            "Alleen verzender kent deze",
             "Iedereen mag hem gebruiken",
-            "Alleen de ontvanger kent deze",
+            "Alleen ontvanger kent deze",
             "Een symmetrische sleutel"
         ],
         correct: 1,
@@ -126,9 +126,9 @@ const quizData = [
         question: "Wat is een private sleutel?",
         answers: [
             "Wordt openbaar gedeeld",
-            "Alleen bekend bij de eigenaar",
+            "Alleen eigenaar kent deze",
             "Gebruikt voor hashcontrole",
-            "In het certificaat opgeslagen"
+            "In certificaat opgeslagen"
         ],
         correct: 1,
         category: "Cybersecurity - BIV & Beveiliging"
@@ -137,7 +137,7 @@ const quizData = [
         question: "Wat is een certificaatautoriteit (CA)?",
         answers: [
             "Server die bestanden deelt",
-            "Organisatie die digitale certificaten uitgeeft",
+            "Organisatie die certificaten uitgeeft",
             "Firewall",
             "Hashdatabase"
         ],
@@ -147,10 +147,10 @@ const quizData = [
     {
         question: "Wat is vertrouwelijkheid?",
         answers: [
-            "Dat gegevens beschikbaar blijven",
-            "Dat alleen bevoegden toegang hebben",
-            "Dat data niet verandert",
-            "Dat systemen snel zijn"
+            "Gegevens blijven beschikbaar",
+            "Alleen bevoegden hebben toegang",
+            "Data verandert niet",
+            "Systemen zijn snel"
         ],
         correct: 1,
         category: "Cybersecurity - BIV & Beveiliging"
@@ -180,7 +180,7 @@ const quizData = [
     {
         question: "Wat is een kwetsbaarheid (vulnerability)?",
         answers: [
-            "Een fout in de software",
+            "Een fout in software",
             "Een hacker",
             "Een firewallregel",
             "Een beveiligingsupdate"
@@ -192,7 +192,7 @@ const quizData = [
         question: "Wat is een exploit?",
         answers: [
             "Een patch",
-            "Een aanval die misbruik maakt van een kwetsbaarheid",
+            "Aanval die kwetsbaarheid misbruikt",
             "Een update",
             "Een scanprogramma"
         ],
@@ -1137,7 +1137,7 @@ const quizData = [
         answers: [
             "Wachtwoordopslag",
             "Data-integriteit",
-            "Versleuteling en terughalen van originele data",
+            "Originele data terughalen",
             "Authenticatie"
         ],
         correct: 2,
