@@ -1238,6 +1238,8 @@ let currentQuestionIndex = 0;
 let score = 0;
 let userAnswers = [];
 let categoryScores = {};
+let currentUser = null;
+let shuffledQuizData = [];
 
 // DOM elements
 const questionText = document.getElementById('questionText');
@@ -1258,11 +1260,229 @@ const correctCount = document.getElementById('correctCount');
 const totalCount = document.getElementById('totalCount');
 const categoryBreakdown = document.getElementById('categoryBreakdown');
 const restartQuizButton = document.getElementById('restartQuizButton');
+const userSelectionSection = document.getElementById('userSelectionSection');
+const resumeSection = document.getElementById('resumeSection');
+const currentUserDisplay = document.getElementById('currentUserDisplay');
+const changeUserButton = document.getElementById('changeUserButton');
+const resumeButton = document.getElementById('resumeButton');
+const startFreshButton = document.getElementById('startFreshButton');
+const resumeUserName = document.getElementById('resumeUserName');
+const resumeProgressInfo = document.getElementById('resumeProgressInfo');
+const progressBarContainer = document.getElementById('progressBarContainer');
+const questionCounter = document.getElementById('questionCounter');
 
-// Initialize quiz
-function initQuiz() {
+// User and progress management
+async function saveProgress() {
+    if (!currentUser) return;
+    
+    const progress = {
+        currentQuestionIndex,
+        score,
+        userAnswers,
+        categoryScores,
+        shuffledQuizData,
+        timestamp: Date.now()
+    };
+    
+    // Try cloud storage first, fallback to localStorage
+    if (useCloudStorage && API_ENDPOINT) {
+        try {
+            // Get all records to find this user
+            const getResponse = await fetch(API_ENDPOINT);
+            const allRecords = await getResponse.json();
+            
+            // Find existing record for this user
+            const existing = Array.isArray(allRecords) 
+                ? allRecords.find(r => r.user === currentUser)
+                : null;
+            
+            if (existing && existing.id) {
+                // Update existing
+                await fetch(`${API_ENDPOINT}/${existing.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ user: currentUser, ...progress })
+                });
+                console.log('Voortgang bijgewerkt in cloud');
+            } else {
+                // Create new - MockAPI needs simple structure
+                const dataToSave = {
+                    user: currentUser,
+                    currentQuestionIndex: progress.currentQuestionIndex,
+                    score: progress.score,
+                    userAnswers: progress.userAnswers,
+                    categoryScores: progress.categoryScores,
+                    shuffledQuizData: progress.shuffledQuizData,
+                    timestamp: progress.timestamp
+                };
+                
+                const createResponse = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(dataToSave)
+                });
+                
+                if (!createResponse.ok) {
+                    const errorText = await createResponse.text();
+                    console.error(`MockAPI error ${createResponse.status}:`, errorText);
+                    throw new Error(`HTTP ${createResponse.status}: ${errorText}`);
+                }
+                
+                const saved = await createResponse.json();
+                console.log('Voortgang opgeslagen in cloud:', saved.id || 'success');
+            }
+        } catch (error) {
+            console.error('Cloud opslaan mislukt, gebruikt localStorage:', error);
+            localStorage.setItem(`quiz_progress_${currentUser}`, JSON.stringify(progress));
+        }
+    } else {
+        localStorage.setItem(`quiz_progress_${currentUser}`, JSON.stringify(progress));
+    }
+}
+
+async function loadProgress(user) {
+    // Try cloud storage first, fallback to localStorage
+    if (useCloudStorage && API_ENDPOINT) {
+        try {
+            const response = await fetch(API_ENDPOINT);
+            const allRecords = await response.json();
+            
+            // Find this user's record
+            const userRecord = Array.isArray(allRecords) 
+                ? allRecords.find(r => r.user === user)
+                : null;
+            
+            if (userRecord) {
+                const { user: _, id, createdAt, ...progress } = userRecord;
+                if (progress && Object.keys(progress).length > 0) {
+                    console.log('Voortgang geladen van cloud');
+                    return progress;
+                }
+            }
+        } catch (error) {
+            console.error('Cloud laden mislukt, probeert localStorage:', error);
+        }
+    }
+    
+    // Fallback to localStorage
+    const saved = localStorage.getItem(`quiz_progress_${user}`);
+    if (!saved) return null;
+    
+    try {
+        return JSON.parse(saved);
+    } catch (e) {
+        return null;
+    }
+}
+
+async function clearProgress(user) {
+    // Clear from cloud storage
+    if (useCloudStorage && API_ENDPOINT) {
+        try {
+            const response = await fetch(API_ENDPOINT);
+            const allRecords = await response.json();
+            
+            // Find this user's record
+            const userRecord = Array.isArray(allRecords) 
+                ? allRecords.find(r => r.user === user)
+                : null;
+            
+            if (userRecord && userRecord.id) {
+                await fetch(`${API_ENDPOINT}/${userRecord.id}`, {
+                    method: 'DELETE'
+                });
+                console.log('Voortgang verwijderd van cloud');
+            }
+        } catch (error) {
+            console.error('Cloud verwijderen mislukt:', error);
+        }
+    }
+    
+    // Clear from localStorage
+    localStorage.removeItem(`quiz_progress_${user}`);
+}
+
+async function selectUser(user) {
+    currentUser = user;
+    const progress = await loadProgress(user);
+    
+    if (progress && progress.currentQuestionIndex < quizData.length) {
+        // Show resume option
+        showResumeOption(user, progress);
+    } else {
+        // Start fresh
+        startQuizFresh();
+    }
+}
+
+function showResumeOption(user, progress) {
+    userSelectionSection.style.display = 'none';
+    resumeSection.style.display = 'block';
+    quizContainer.style.display = 'none';
+    resultsSection.style.display = 'none';
+    
+    const userName = user.charAt(0).toUpperCase() + user.slice(1);
+    resumeUserName.textContent = userName;
+    
+    const progressPercent = Math.round(((progress.currentQuestionIndex) / quizData.length) * 100);
+    const answeredQuestions = progress.userAnswers.length;
+    const correctAnswers = progress.userAnswers.filter(a => a.isCorrect).length;
+    
+    resumeProgressInfo.innerHTML = `
+        <div class="progress-stats">
+            <p><strong>Voortgang:</strong> ${progress.currentQuestionIndex} van ${quizData.length} vragen (${progressPercent}%)</p>
+            <p><strong>Beantwoord:</strong> ${answeredQuestions} vragen</p>
+            <p><strong>Correct:</strong> ${correctAnswers} van ${answeredQuestions} beantwoorde vragen</p>
+        </div>
+    `;
+}
+
+async function resumeQuiz() {
+    const progress = await loadProgress(currentUser);
+    if (!progress) {
+        startQuizFresh();
+        return;
+    }
+    
+    // Restore state
+    currentQuestionIndex = progress.currentQuestionIndex;
+    score = progress.score;
+    userAnswers = progress.userAnswers;
+    categoryScores = progress.categoryScores;
+    shuffledQuizData = progress.shuffledQuizData;
+    
+    // Hide resume section, show quiz
+    resumeSection.style.display = 'none';
+    quizContainer.style.display = 'flex';
+    resultsSection.style.display = 'none';
+    
+    // Show progress bar
+    progressBarContainer.style.display = 'block';
+    questionCounter.style.display = 'block';
+    
+    // Update UI
+    currentUserDisplay.textContent = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
+    totalQuestionsSpan.textContent = quizData.length;
+    
+    // If quiz is completed, show results
+    if (currentQuestionIndex >= quizData.length) {
+        showResults();
+    } else {
+        showQuestion();
+    }
+}
+
+async function startQuizFresh() {
+    // Clear any existing progress
+    await clearProgress(currentUser);
+    
     // Shuffle questions for variety
-    shuffleArray(quizData);
+    shuffledQuizData = [...quizData];
+    shuffleArray(shuffledQuizData);
     
     // Reset state
     currentQuestionIndex = 0;
@@ -1276,17 +1496,50 @@ function initQuiz() {
         categoryScores[category] = { correct: 0, total: 0 };
     });
     
-    // Update UI
-    totalQuestionsSpan.textContent = quizData.length;
+    // Hide selection/resume sections, show quiz
+    userSelectionSection.style.display = 'none';
+    resumeSection.style.display = 'none';
     quizContainer.style.display = 'flex';
     resultsSection.style.display = 'none';
+    
+    // Show progress bar
+    progressBarContainer.style.display = 'block';
+    questionCounter.style.display = 'block';
+    
+    // Update UI
+    currentUserDisplay.textContent = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
+    totalQuestionsSpan.textContent = quizData.length;
     
     showQuestion();
 }
 
+async function changeUser() {
+    if (confirm('Weet je zeker dat je van gebruiker wilt wisselen? Je huidige voortgang wordt opgeslagen.')) {
+        await saveProgress();
+        currentUser = null;
+        userSelectionSection.style.display = 'block';
+        resumeSection.style.display = 'none';
+        quizContainer.style.display = 'none';
+        resultsSection.style.display = 'none';
+        progressBarContainer.style.display = 'none';
+        questionCounter.style.display = 'none';
+    }
+}
+
+// Initialize quiz
+function initQuiz() {
+    // Don't auto-start - wait for user selection
+    userSelectionSection.style.display = 'block';
+    quizContainer.style.display = 'none';
+    resultsSection.style.display = 'none';
+    resumeSection.style.display = 'none';
+    progressBarContainer.style.display = 'none';
+    questionCounter.style.display = 'none';
+}
+
 // Show current question
 function showQuestion() {
-    const question = quizData[currentQuestionIndex];
+    const question = shuffledQuizData[currentQuestionIndex];
     
     // Update progress
     const progress = ((currentQuestionIndex + 1) / quizData.length) * 100;
@@ -1313,11 +1566,14 @@ function showQuestion() {
     
     // Update category score total
     categoryScores[question.category].total++;
+    
+    // Save progress
+    saveProgress();
 }
 
 // Handle answer selection
 function selectAnswer(selectedIndex) {
-    const question = quizData[currentQuestionIndex];
+    const question = shuffledQuizData[currentQuestionIndex];
     const answerOptions = document.querySelectorAll('.answer-option');
     
     // Disable all options
@@ -1349,6 +1605,9 @@ function selectAnswer(selectedIndex) {
         isCorrect: isCorrect
     });
     
+    // Save progress after answering
+    saveProgress();
+    
     // Show next button or finish quiz
     setTimeout(() => {
         if (currentQuestionIndex < quizData.length - 1) {
@@ -1362,11 +1621,11 @@ function selectAnswer(selectedIndex) {
 // Show feedback
 function showFeedback(isCorrect, message) {
     feedbackSection.style.display = 'block';
-    feedbackIcon.textContent = isCorrect ? '✅' : '❌';
+    feedbackIcon.textContent = isCorrect ? 'Correct' : 'Incorrect';
     feedbackText.textContent = message;
     
     if (!isCorrect) {
-        const question = quizData[currentQuestionIndex];
+        const question = shuffledQuizData[currentQuestionIndex];
         correctAnswer.innerHTML = `<strong>Correct antwoord:</strong> ${question.answers[question.correct]}`;
     } else {
         correctAnswer.innerHTML = '';
@@ -1380,9 +1639,12 @@ function nextQuestion() {
 }
 
 // Show results
-function showResults() {
+async function showResults() {
     quizContainer.style.display = 'none';
     resultsSection.style.display = 'block';
+    
+    // Clear progress when quiz is completed
+    await clearProgress(currentUser);
     
     // Calculate percentage
     const percentage = Math.round((score / quizData.length) * 100);
@@ -1407,8 +1669,11 @@ function showResults() {
 }
 
 // Restart quiz
-function restartQuiz() {
-    initQuiz();
+async function restartQuiz() {
+    if (confirm('Weet je zeker dat je opnieuw wilt beginnen? Je huidige voortgang wordt gewist.')) {
+        await clearProgress(currentUser);
+        await startQuizFresh();
+    }
 }
 
 // Utility function to shuffle array
@@ -1422,10 +1687,26 @@ function shuffleArray(array) {
 // Event listeners
 nextButton.addEventListener('click', nextQuestion);
 restartButton.addEventListener('click', restartQuiz);
-restartQuizButton.addEventListener('click', restartQuiz);
+restartQuizButton.addEventListener('click', async () => {
+    await clearProgress(currentUser);
+    await startQuizFresh();
+});
+changeUserButton.addEventListener('click', changeUser);
+resumeButton.addEventListener('click', resumeQuiz);
+startFreshButton.addEventListener('click', startQuizFresh);
 
 // Initialize quiz when page loads
-document.addEventListener('DOMContentLoaded', initQuiz);
+document.addEventListener('DOMContentLoaded', () => {
+    initQuiz();
+    
+    // User selection event listeners
+    document.querySelectorAll('.user-option').forEach(option => {
+        option.addEventListener('click', () => {
+            const user = option.getAttribute('data-user');
+            selectUser(user);
+        });
+    });
+});
 
 // Add keyboard support
 document.addEventListener('keydown', (e) => {

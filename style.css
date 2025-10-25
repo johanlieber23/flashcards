@@ -63,6 +63,7 @@ h1 {
     font-size: 1.1rem;
 }
 
+
 /* Main content */
 main {
     flex: 1;
@@ -394,4 +395,187 @@ main {
 .loading {
     opacity: 0.6;
     pointer-events: none;
+}
+
+/* User selection section */
+.user-selection-section {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    text-align: center;
+}
+
+.user-selection-content h2 {
+    font-size: 2rem;
+    color: #2d3748;
+    margin-bottom: 10px;
+}
+
+.user-selection-subtitle {
+    color: #718096;
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+}
+
+.user-options {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.user-option {
+    background: #f7fafc;
+    border: 3px solid #e2e8f0;
+    border-radius: 15px;
+    padding: 25px 40px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 150px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-option:hover {
+    background: #edf2f7;
+    border-color: #667eea;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+}
+
+.user-icon {
+    display: none;
+}
+
+.user-name {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+/* Resume section */
+.resume-section {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    text-align: center;
+}
+
+.resume-content h2 {
+    font-size: 2rem;
+    color: #2d3748;
+    margin-bottom: 15px;
+}
+
+.resume-info {
+    color: #718096;
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+}
+
+.resume-progress-info {
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 25px 0;
+    text-align: left;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.progress-stats p {
+    margin: 10px 0;
+    color: #4a5568;
+    font-size: 1rem;
+}
+
+.resume-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 30px;
+}
+
+/* User indicator */
+.user-indicator {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f7fafc;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 1rem;
+    color: #4a5568;
+}
+
+.user-indicator strong {
+    color: #667eea;
+    font-weight: 700;
+}
+
+.btn-small {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+.btn-small:hover {
+    background: #cbd5e0;
+    transform: translateY(-2px);
+}
+
+/* Mobile responsive for user selection */
+@media (max-width: 768px) {
+    .user-selection-section,
+    .resume-section {
+        padding: 30px 20px;
+    }
+    
+    .user-selection-content h2,
+    .resume-content h2 {
+        font-size: 1.6rem;
+    }
+    
+    .user-options {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .user-option {
+        width: 100%;
+        max-width: 250px;
+    }
+    
+    .resume-buttons {
+        flex-direction: column;
+    }
+    
+    .resume-buttons .btn {
+        width: 100%;
+    }
+    
+    .user-indicator {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .btn-small {
+        width: 100%;
+    }
 }

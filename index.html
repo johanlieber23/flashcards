@@ -5,19 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cybersecurity Quiz</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Geen externe SDK's nodig - alles werkt met fetch API -->
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🔒 Cybersecurity Quiz</h1>
-            <div class="progress-bar">
+            <h1>Cybersecurity Quiz</h1>
+            <div class="progress-bar" id="progressBarContainer" style="display: none;">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
-            <p class="question-counter">Vraag <span id="currentQuestion">1</span> van <span id="totalQuestions">100</span></p>
+            <p class="question-counter" id="questionCounter" style="display: none;">Vraag <span id="currentQuestion">1</span> van <span id="totalQuestions">100</span></p>
         </header>
 
         <main>
-            <div class="quiz-container" id="quizContainer">
+            <div class="user-selection-section" id="userSelectionSection">
+                <div class="user-selection-content">
+                    <h2>Kies je gebruiker</h2>
+                    <p class="user-selection-subtitle">Selecteer een gebruiker om de proeftoets te starten</p>
+                    <div class="user-options">
+                        <div class="user-option" data-user="lenny">
+                            <div class="user-name">Lenny</div>
+                        </div>
+                        <div class="user-option" data-user="stefano">
+                            <div class="user-name">Stefano</div>
+                        </div>
+                        <div class="user-option" data-user="alijandro">
+                            <div class="user-name">Alijandro</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="resume-section" id="resumeSection" style="display: none;">
+                <div class="resume-content">
+                    <h2>Welkom terug, <span id="resumeUserName"></span>!</h2>
+                    <p class="resume-info">Je hebt een opgeslagen voortgang gevonden.</p>
+                    <div class="resume-progress-info" id="resumeProgressInfo"></div>
+                    <div class="resume-buttons">
+                        <button id="resumeButton" class="btn btn-primary">Voortgang Hervatten</button>
+                        <button id="startFreshButton" class="btn btn-secondary">Opnieuw Beginnen</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-container" id="quizContainer" style="display: none;">
+                <div class="user-indicator">
+                    <span>Gebruiker: <strong id="currentUserDisplay"></strong></span>
+                    <button id="changeUserButton" class="btn-small">Wissel Gebruiker</button>
+                </div>
                 <div class="question-section">
                     <h2 id="questionText">Vraag wordt geladen...</h2>
                 </div>
@@ -42,7 +77,7 @@
 
             <div class="results-section" id="resultsSection" style="display: none;">
                 <div class="results-content">
-                    <h2>🎉 Quiz Voltooid!</h2>
+                    <h2>Quiz Voltooid!</h2>
                     <div class="score-display">
                         <div class="score-circle">
                             <span id="scorePercentage">0%</span>
@@ -58,6 +93,7 @@
         </main>
     </div>
 
+    <script src="firebase-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
