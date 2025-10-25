@@ -26,3 +26,5 @@ while ((match = answerPattern.exec(content)) !== null) {
 }
 
 console.log('Analyse voltooid. Check de output hierboven voor problematische vragen.');
+
+

@@ -1666,6 +1666,44 @@ async function showResults() {
             categoryBreakdown.appendChild(categoryItem);
         }
     });
+    
+    // Show detailed question review
+    showQuestionReview();
+}
+
+// Show detailed question review
+function showQuestionReview() {
+    const questionReviewList = document.getElementById('questionReviewList');
+    questionReviewList.innerHTML = '';
+    
+    shuffledQuizData.forEach((question, index) => {
+        const userAnswer = userAnswers[index];
+        const isCorrect = userAnswer ? userAnswer.isCorrect : false;
+        const userAnswerText = userAnswer ? question.answers[userAnswer.answerIndex] : 'Niet beantwoord';
+        const correctAnswerText = question.answers[question.correct];
+        
+        const reviewItem = document.createElement('div');
+        reviewItem.className = `question-review-item ${isCorrect ? 'correct' : 'incorrect'}`;
+        
+        reviewItem.innerHTML = `
+            <div class="question-review-question">
+                Vraag ${index + 1}: ${question.question}
+            </div>
+            <div class="question-review-answers">
+                <div class="question-review-your-answer">
+                    <strong>Jouw antwoord:</strong> ${userAnswerText}
+                </div>
+                <div class="question-review-correct-answer">
+                    <strong>Correct antwoord:</strong> ${correctAnswerText}
+                </div>
+            </div>
+            <div class="question-review-status ${isCorrect ? 'correct' : 'incorrect'}">
+                ${isCorrect ? 'Correct' : 'Incorrect'}
+            </div>
+        `;
+        
+        questionReviewList.appendChild(reviewItem);
+    });
 }
 
 // Restart quiz

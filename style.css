@@ -288,6 +288,80 @@ main {
     color: #2d3748;
 }
 
+/* Question Review Styles */
+.question-review {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.question-review h3 {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-size: 1.2em;
+}
+
+.question-review-item {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 6px;
+    border-left: 4px solid #ddd;
+}
+
+.question-review-item.correct {
+    border-left-color: #28a745;
+}
+
+.question-review-item.incorrect {
+    border-left-color: #dc3545;
+}
+
+.question-review-question {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.question-review-answers {
+    margin-bottom: 10px;
+}
+
+.question-review-your-answer {
+    margin-bottom: 5px;
+}
+
+.question-review-your-answer span {
+    font-weight: 500;
+}
+
+.question-review-correct-answer {
+    margin-bottom: 10px;
+}
+
+.question-review-correct-answer span {
+    font-weight: 500;
+}
+
+.question-review-status {
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.question-review-status.correct {
+    background: #d4edda;
+    color: #155724;
+}
+
+.question-review-status.incorrect {
+    background: #f8d7da;
+    color: #721c24;
+}
+
 /* Mobiele optimalisatie */
 @media (max-width: 768px) {
     .container {
