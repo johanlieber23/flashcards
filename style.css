@@ -104,13 +104,16 @@ main {
     background: #f7fafc;
     border: 2px solid #e2e8f0;
     border-radius: 12px;
-    padding: 15px 20px;
+    padding: 12px 14px;
     margin-bottom: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     color: #4a5568;
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .answer-option:hover {
@@ -118,6 +121,35 @@ main {
     border-color: #667eea;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.answer-text {
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.answer-option.expanded .answer-text {
+    -webkit-line-clamp: initial;
+    line-clamp: initial;
+    overflow: visible;
+}
+
+.answer-expand {
+    background: transparent;
+    border: none;
+    color: #667eea;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 6px;
+}
+
+.answer-expand:hover {
+    background: rgba(102, 126, 234, 0.08);
 }
 
 .answer-option.selected {
@@ -188,6 +220,26 @@ main {
     gap: 15px;
     margin-top: auto;
     padding-top: 20px;
+}
+
+/* Mobile-first sticky next button under answers */
+@media (max-width: 768px) {
+    .navigation-section {
+        position: sticky;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.98);
+        padding: 12px 16px 16px 16px;
+        margin-top: 10px;
+        border-top: 1px solid #e2e8f0;
+        z-index: 5;
+    }
+    .answers-section {
+        margin-bottom: 10px;
+    }
+    .feedback-section {
+        margin: 12px 0;
+        padding: 14px;
+    }
 }
 
 .btn {
@@ -498,6 +550,10 @@ main {
     justify-content: center;
     gap: 20px;
     flex-wrap: wrap;
+}
+
+.quiz-options .quiz-option .user-name {
+    font-size: 1.3rem;
 }
 
 .user-option {

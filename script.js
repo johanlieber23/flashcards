@@ -1,5 +1,5 @@
-// Quiz data - alle vragen en antwoorden
-const quizData = [
+// Quiz data - alle vragen en antwoorden (Quiz 1)
+const quiz1Data = [
     // Cybersecurity - BIV & Beveiliging
     {
         question: "Wat betekent BIV?",
@@ -1233,6 +1233,14 @@ const quizData = [
     }
 ];
 
+// Quiz 2 data en Python quiz worden uit losse files geladen
+const quiz2Data = window.quiz2Data || [];
+const quizPythonData = window.quizPythonData || [];
+
+// Active quiz dataset pointer
+let activeQuizKey = 'quiz1';
+let quizData = quiz1Data;
+
 // Quiz state
 let currentQuestionIndex = 0;
 let score = 0;
@@ -1240,6 +1248,16 @@ let userAnswers = [];
 let categoryScores = {};
 let currentUser = null;
 let shuffledQuizData = [];
+let currentAnswerOrder = [];
+const TARGET_ANSWER_MIN_LEN = 35;
+
+function padAnswerForDisplay(text) {
+    const base = String(text || '');
+    if (base.length >= TARGET_ANSWER_MIN_LEN) return base;
+    const deficit = TARGET_ANSWER_MIN_LEN - base.length;
+    const zeroWidth = '\u200B'.repeat(deficit);
+    return base + zeroWidth;
+}
 
 // DOM elements
 const questionText = document.getElementById('questionText');
@@ -1276,6 +1294,7 @@ async function saveProgress() {
     if (!currentUser) return;
     
     const progress = {
+        activeQuizKey,
         currentQuestionIndex,
         score,
         userAnswers,
@@ -1293,7 +1312,7 @@ async function saveProgress() {
             
             // Find existing record for this user
             const existing = Array.isArray(allRecords) 
-                ? allRecords.find(r => r.user === currentUser)
+                ? allRecords.find(r => r.user === currentUser && r.activeQuizKey === activeQuizKey)
                 : null;
             
             if (existing && existing.id) {
@@ -1310,6 +1329,7 @@ async function saveProgress() {
                 // Create new - MockAPI needs simple structure
                 const dataToSave = {
                     user: currentUser,
+                    activeQuizKey: progress.activeQuizKey,
                     currentQuestionIndex: progress.currentQuestionIndex,
                     score: progress.score,
                     userAnswers: progress.userAnswers,
@@ -1337,10 +1357,10 @@ async function saveProgress() {
             }
         } catch (error) {
             console.error('Cloud opslaan mislukt, gebruikt localStorage:', error);
-            localStorage.setItem(`quiz_progress_${currentUser}`, JSON.stringify(progress));
+            localStorage.setItem(`quiz_progress_${currentUser}_${activeQuizKey}`, JSON.stringify(progress));
         }
     } else {
-        localStorage.setItem(`quiz_progress_${currentUser}`, JSON.stringify(progress));
+        localStorage.setItem(`quiz_progress_${currentUser}_${activeQuizKey}`, JSON.stringify(progress));
     }
 }
 
@@ -1353,7 +1373,7 @@ async function loadProgress(user) {
             
             // Find this user's record
             const userRecord = Array.isArray(allRecords) 
-                ? allRecords.find(r => r.user === user)
+                ? allRecords.find(r => r.user === user && r.activeQuizKey === activeQuizKey)
                 : null;
             
             if (userRecord) {
@@ -1369,7 +1389,7 @@ async function loadProgress(user) {
     }
     
     // Fallback to localStorage
-    const saved = localStorage.getItem(`quiz_progress_${user}`);
+    const saved = localStorage.getItem(`quiz_progress_${user}_${activeQuizKey}`);
     if (!saved) return null;
     
     try {
@@ -1388,7 +1408,7 @@ async function clearProgress(user) {
             
             // Find this user's record
             const userRecord = Array.isArray(allRecords) 
-                ? allRecords.find(r => r.user === user)
+                ? allRecords.find(r => r.user === user && r.activeQuizKey === activeQuizKey)
                 : null;
             
             if (userRecord && userRecord.id) {
@@ -1403,7 +1423,7 @@ async function clearProgress(user) {
     }
     
     // Clear from localStorage
-    localStorage.removeItem(`quiz_progress_${user}`);
+    localStorage.removeItem(`quiz_progress_${user}_${activeQuizKey}`);
 }
 
 async function selectUser(user) {
@@ -1421,6 +1441,7 @@ async function selectUser(user) {
 
 function showResumeOption(user, progress) {
     userSelectionSection.style.display = 'none';
+    document.getElementById('quizSelectionSection').style.display = 'none';
     resumeSection.style.display = 'block';
     quizContainer.style.display = 'none';
     resultsSection.style.display = 'none';
@@ -1498,6 +1519,7 @@ async function startQuizFresh() {
     
     // Hide selection/resume sections, show quiz
     userSelectionSection.style.display = 'none';
+    document.getElementById('quizSelectionSection').style.display = 'none';
     resumeSection.style.display = 'none';
     quizContainer.style.display = 'flex';
     resultsSection.style.display = 'none';
@@ -1529,7 +1551,8 @@ async function changeUser() {
 // Initialize quiz
 function initQuiz() {
     // Don't auto-start - wait for user selection
-    userSelectionSection.style.display = 'block';
+    document.getElementById('quizSelectionSection').style.display = 'block';
+    userSelectionSection.style.display = 'none';
     quizContainer.style.display = 'none';
     resultsSection.style.display = 'none';
     resumeSection.style.display = 'none';
@@ -1556,11 +1579,65 @@ function showQuestion() {
     restartButton.style.display = 'none';
     
     // Create answer options
-    question.answers.forEach((answer, index) => {
+    currentAnswerOrder = question.answers.map((_, i) => i);
+    shuffleArray(currentAnswerOrder);
+    // Determine target length for correct answer so it's not the longest
+    const originalAnswers = question.answers.map(a => String(a || ''));
+    const correctIdx = question.correct;
+    const nonCorrectMaxLen = Math.max(...originalAnswers
+        .map((txt, i) => i === correctIdx ? 0 : txt.length));
+
+    function smartTruncate(text, limit) {
+        if (text.length <= limit) return text;
+        const words = text.split(' ');
+        let out = '';
+        for (let w of words) {
+            if ((out + (out ? ' ' : '') + w).length > limit) break;
+            out += (out ? ' ' : '') + w;
+        }
+        return out || text.slice(0, Math.max(0, limit));
+    }
+
+    function getDisplayText(index) {
+        const raw = originalAnswers[index];
+        if (index === correctIdx) {
+            // Keep correct answer no longer than the longest incorrect minus 2 chars
+            const cap = Math.max(8, nonCorrectMaxLen - 2);
+            return smartTruncate(raw, cap);
+        }
+        return raw;
+    }
+
+    currentAnswerOrder.forEach((originalIndex) => {
         const answerDiv = document.createElement('div');
         answerDiv.className = 'answer-option';
-        answerDiv.textContent = answer;
-        answerDiv.addEventListener('click', () => selectAnswer(index));
+        answerDiv.dataset.originalIndex = String(originalIndex);
+
+        const textSpan = document.createElement('span');
+        textSpan.className = 'answer-text';
+        const fullText = question.answers[originalIndex];
+        const displayText = getDisplayText(originalIndex);
+        textSpan.textContent = padAnswerForDisplay(displayText);
+        textSpan.dataset.fullText = fullText;
+        textSpan.dataset.shortText = displayText;
+
+        const expandBtn = document.createElement('button');
+        expandBtn.className = 'answer-expand';
+        expandBtn.type = 'button';
+        expandBtn.textContent = 'Meer';
+        expandBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            answerDiv.classList.toggle('expanded');
+            const expanded = answerDiv.classList.contains('expanded');
+            expandBtn.textContent = expanded ? 'Minder' : 'Meer';
+            textSpan.textContent = expanded 
+                ? textSpan.dataset.fullText 
+                : padAnswerForDisplay(textSpan.dataset.shortText);
+        });
+
+        answerDiv.appendChild(textSpan);
+        answerDiv.appendChild(expandBtn);
+        answerDiv.addEventListener('click', () => selectAnswer(originalIndex));
         answersSection.appendChild(answerDiv);
     });
     
@@ -1572,7 +1649,7 @@ function showQuestion() {
 }
 
 // Handle answer selection
-function selectAnswer(selectedIndex) {
+function selectAnswer(selectedOriginalIndex) {
     const question = shuffledQuizData[currentQuestionIndex];
     const answerOptions = document.querySelectorAll('.answer-option');
     
@@ -1582,25 +1659,27 @@ function selectAnswer(selectedIndex) {
     });
     
     // Mark selected answer
-    answerOptions[selectedIndex].classList.add('selected');
+    const selectedEl = Array.from(answerOptions).find(el => parseInt(el.dataset.originalIndex) === selectedOriginalIndex);
+    if (selectedEl) selectedEl.classList.add('selected');
     
     // Check if correct
-    const isCorrect = selectedIndex === question.correct;
+    const isCorrect = selectedOriginalIndex === question.correct;
     if (isCorrect) {
         score++;
         categoryScores[question.category].correct++;
-        answerOptions[selectedIndex].classList.add('correct');
+        if (selectedEl) selectedEl.classList.add('correct');
         showFeedback(true, 'Correct! 🎉');
     } else {
-        answerOptions[selectedIndex].classList.add('incorrect');
-        answerOptions[question.correct].classList.add('correct');
+        if (selectedEl) selectedEl.classList.add('incorrect');
+        const correctEl = Array.from(answerOptions).find(el => parseInt(el.dataset.originalIndex) === question.correct);
+        if (correctEl) correctEl.classList.add('correct');
         showFeedback(false, 'Helaas, dat is niet correct.');
     }
     
     // Store user answer
     userAnswers.push({
         questionIndex: currentQuestionIndex,
-        selectedAnswer: selectedIndex,
+        selectedAnswer: selectedOriginalIndex,
         correctAnswer: question.correct,
         isCorrect: isCorrect
     });
@@ -1612,6 +1691,11 @@ function selectAnswer(selectedIndex) {
     setTimeout(() => {
         if (currentQuestionIndex < quizData.length - 1) {
             nextButton.style.display = 'block';
+            // Ensure button is visible on mobile without manual scrolling
+            const nav = document.getElementById('navigationSection');
+            if (nav) {
+                nav.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         } else {
             showResults();
         }
@@ -1621,7 +1705,7 @@ function selectAnswer(selectedIndex) {
 // Show feedback
 function showFeedback(isCorrect, message) {
     feedbackSection.style.display = 'block';
-    feedbackIcon.textContent = isCorrect ? 'Correct' : 'Incorrect';
+    feedbackIcon.textContent = isCorrect ? '✅' : '❌';
     feedbackText.textContent = message;
     
     if (!isCorrect) {
@@ -1679,7 +1763,7 @@ function showQuestionReview() {
     shuffledQuizData.forEach((question, index) => {
         const userAnswer = userAnswers[index];
         const isCorrect = userAnswer ? userAnswer.isCorrect : false;
-        const userAnswerText = userAnswer ? question.answers[userAnswer.answerIndex] : 'Niet beantwoord';
+        const userAnswerText = userAnswer ? question.answers[userAnswer.selectedAnswer] : 'Niet beantwoord';
         const correctAnswerText = question.answers[question.correct];
         
         const reviewItem = document.createElement('div');
@@ -1740,8 +1824,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // User selection event listeners
     document.querySelectorAll('.user-option').forEach(option => {
         option.addEventListener('click', () => {
-            const user = option.getAttribute('data-user');
-            selectUser(user);
+            const quizKey = option.getAttribute('data-quiz');
+            if (quizKey) {
+                // Choose quiz first
+                activeQuizKey = quizKey;
+                quizData = quizKey === 'quiz2' ? quiz2Data : quizKey === 'python' ? quizPythonData : quiz1Data;
+                document.getElementById('quizSelectionSection').style.display = 'none';
+                userSelectionSection.style.display = 'block';
+                // Update total questions for header
+                document.getElementById('totalQuestions').textContent = quizData.length;
+            } else {
+                const user = option.getAttribute('data-user');
+                selectUser(user);
+            }
         });
     });
 });
@@ -1752,7 +1847,8 @@ document.addEventListener('keydown', (e) => {
         const answerIndex = parseInt(e.key) - 1;
         const answerOptions = document.querySelectorAll('.answer-option');
         if (answerOptions[answerIndex] && !answerOptions[answerIndex].classList.contains('disabled')) {
-            selectAnswer(answerIndex);
+            const originalIndex = parseInt(answerOptions[answerIndex].dataset.originalIndex);
+            selectAnswer(originalIndex);
         }
     } else if (e.key === 'Enter' || e.key === ' ') {
         if (nextButton.style.display === 'block') {
