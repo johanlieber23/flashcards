@@ -1615,28 +1615,10 @@ function showQuestion() {
 
         const textSpan = document.createElement('span');
         textSpan.className = 'answer-text';
-        const fullText = question.answers[originalIndex];
         const displayText = getDisplayText(originalIndex);
         textSpan.textContent = padAnswerForDisplay(displayText);
-        textSpan.dataset.fullText = fullText;
-        textSpan.dataset.shortText = displayText;
-
-        const expandBtn = document.createElement('button');
-        expandBtn.className = 'answer-expand';
-        expandBtn.type = 'button';
-        expandBtn.textContent = 'Meer';
-        expandBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            answerDiv.classList.toggle('expanded');
-            const expanded = answerDiv.classList.contains('expanded');
-            expandBtn.textContent = expanded ? 'Minder' : 'Meer';
-            textSpan.textContent = expanded 
-                ? textSpan.dataset.fullText 
-                : padAnswerForDisplay(textSpan.dataset.shortText);
-        });
 
         answerDiv.appendChild(textSpan);
-        answerDiv.appendChild(expandBtn);
         answerDiv.addEventListener('click', () => selectAnswer(originalIndex));
         answersSection.appendChild(answerDiv);
     });

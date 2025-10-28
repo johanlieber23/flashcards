@@ -132,25 +132,7 @@ main {
     overflow: hidden;
 }
 
-.answer-option.expanded .answer-text {
-    -webkit-line-clamp: initial;
-    line-clamp: initial;
-    overflow: visible;
-}
-
-.answer-expand {
-    background: transparent;
-    border: none;
-    color: #667eea;
-    font-weight: 700;
-    cursor: pointer;
-    padding: 6px 8px;
-    border-radius: 6px;
-}
-
-.answer-expand:hover {
-    background: rgba(102, 126, 234, 0.08);
-}
+/* Read-more controls removed */
 
 .answer-option.selected {
     background: #667eea;
