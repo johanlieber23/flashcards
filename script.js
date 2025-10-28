@@ -1581,32 +1581,16 @@ function showQuestion() {
     // Create answer options
     currentAnswerOrder = question.answers.map((_, i) => i);
     shuffleArray(currentAnswerOrder);
-    // Determine target length for correct answer so it's not the longest
+    // Normalize perceived length without truncating content
     const originalAnswers = question.answers.map(a => String(a || ''));
-    const correctIdx = question.correct;
-    const nonCorrectMaxLen = Math.max(...originalAnswers
-        .map((txt, i) => i === correctIdx ? 0 : txt.length));
-
-    function smartTruncate(text, limit) {
-        if (text.length <= limit) return text;
-        const words = text.split(' ');
-        let out = '';
-        for (let w of words) {
-            if ((out + (out ? ' ' : '') + w).length > limit) break;
-            out += (out ? ' ' : '') + w;
-        }
-        return out || text.slice(0, Math.max(0, limit));
-    }
-
-    function getDisplayText(index) {
-        const raw = originalAnswers[index];
-        if (index === correctIdx) {
-            // Keep correct answer no longer than the longest incorrect minus 2 chars
-            const cap = Math.max(8, nonCorrectMaxLen - 2);
-            return smartTruncate(raw, cap);
-        }
-        return raw;
-    }
+    const maxLen = Math.max(...originalAnswers.map(t => t.length));
+    const padToTarget = (text) => {
+        const base = String(text || '');
+        if (base.length >= maxLen) return base;
+        const deficit = maxLen - base.length;
+        const zeroWidth = '\u200B'.repeat(deficit);
+        return base + zeroWidth;
+    };
 
     currentAnswerOrder.forEach((originalIndex) => {
         const answerDiv = document.createElement('div');
@@ -1615,8 +1599,8 @@ function showQuestion() {
 
         const textSpan = document.createElement('span');
         textSpan.className = 'answer-text';
-        const displayText = getDisplayText(originalIndex);
-        textSpan.textContent = padAnswerForDisplay(displayText);
+        const displayText = padToTarget(question.answers[originalIndex]);
+        textSpan.textContent = displayText;
 
         answerDiv.appendChild(textSpan);
         answerDiv.addEventListener('click', () => selectAnswer(originalIndex));
